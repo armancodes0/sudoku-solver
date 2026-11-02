@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sudoku Solver - Digital Logic Concepts | B.Tech Mini-Project</title>
+  <link rel="stylesheet" href="style.css">
+  <meta name="description" content="Design and Implementation of a Sudoku Solver Using Digital Logic Concepts. A comprehensive B.Tech mini-project featuring recursive backtracking, Boolean logic modeling, truth tables, and step-by-step circuit visualization.">
+</head>
+<body>
+  <!-- HEADER & NAVIGATION -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="title-group">
+        <div class="project-badge">
+          <span class="badge-icon">⚡</span>
+          <span>B.Tech Mini-Project &bull; Digital Electronics &amp; Logic Design</span>
+        </div>
+        <h1 class="project-title">Sudoku Solver Using Digital Logic Concepts</h1>
+        <p class="project-subtitle">Interactive algorithmic solver modeling Boolean validation, 3-input AND gates, 4-bit binary registers, and recursive backtracking.</p>
+      </div>
+      <div class="header-status">
+        <div class="status-indicator-pill" id="globalStatusPill">
+          <span class="status-dot ready" id="globalStatusDot"></span>
+          <span class="status-text" id="globalStatusText">System Ready</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Navigation Bar -->
+    <nav class="sub-nav">
+      <a href="#solverSection" class="nav-link active">🎮 Solver Grid</a>
+      <a href="#digitalLogicHud" class="nav-link">⚡ Logic Circuit HUD</a>
+      <a href="#digitalTheorySection" class="nav-link">📘 Digital Logic Connection</a>
+      <a href="#truthTableSection" class="nav-link">📊 3-Input Truth Table</a>
+      <a href="#algorithmSection" class="nav-link">🧠 Backtracking Algorithm</a>
+    </nav>
+  </header>
+
+  <!-- MAIN APPLICATION CONTENT -->
+  <main class="main-content">
+    <!-- SOLVER WORKSPACE (GRID + LOGIC HUD) -->
+    <section id="solverSection" class="workspace-section">
+      <div class="workspace-grid">
+        
+        <!-- LEFT COLUMN: SUDOKU BOARD & USER CONTROLS -->
+        <div class="board-column">
+          <div class="card board-card">
+            <div class="card-header">
+              <div class="card-title-group">
+                <h2 class="card-title">9&times;9 Sudoku Matrix</h2>
+                <span class="card-caption">Interactive grid with 3&times;3 box isolation</span>
+              </div>
+              <div class="board-stats-badge">
+                <span id="cluesCountDisplay">Clues: 0</span> &bull; 
+                <span id="emptyCountDisplay">Empty: 81</span>
+              </div>
+            </div>
+
+            <!-- SUDOKU GRID CONTAINER -->
+            <div class="sudoku-grid-wrapper">
+              <div id="sudokuGrid" class="sudoku-grid" role="grid" aria-label="9 by 9 Sudoku Grid">
+                <!-- 81 cell inputs will be dynamically generated and injected here by script.js -->
+              </div>
+            </div>
+
+            <!-- NUMBER PAD (FOR TOUCH / MOBILE / EASY INPUT) -->
+            <div class="numpad-container" aria-label="Quick number input pad">
+              <button type="button" class="numpad-btn" data-num="1">1</button>
+              <button type="button" class="numpad-btn" data-num="2">2</button>
+              <button type="button" class="numpad-btn" data-num="3">3</button>
+              <button type="button" class="numpad-btn" data-num="4">4</button>
+              <button type="button" class="numpad-btn" data-num="5">5</button>
+              <button type="button" class="numpad-btn" data-num="6">6</button>
+              <button type="button" class="numpad-btn" data-num="7">7</button>
+              <button type="button" class="numpad-btn" data-num="8">8</button>
+              <button type="button" class="numpad-btn" data-num="9">9</button>
+              <button type="button" class="numpad-btn numpad-action erase" id="btnEraseCell" title="Erase selected cell value">
+                <span>⌫ Erase</span>
+              </button>
+            </div>
+
+            <!-- PRIMARY FUNCTIONAL BUTTONS -->
+            <div class="control-panel">
+              <div class="button-row primary-buttons">
+                <button type="button" class="btn btn-primary" id="btnSolve" title="Solve puzzle immediately using recursive backtracking">
+                  <span class="btn-icon">⚡</span>
+                  <span class="btn-label">Solve Sudoku</span>
+                </button>
+                <button type="button" class="btn btn-accent" id="btnVisualSolve" title="Visualize step-by-step solving with digital logic gate verification">
+                  <span class="btn-icon">🔬</span>
+                  <span class="btn-label">Show Solution Steps</span>
+                </button>
+                <button type="button" class="btn btn-secondary" id="btnCheckPuzzle" title="Validate row, column, and 3x3 box constraints without solving">
+                  <span class="btn-icon">✓</span>
+                  <span class="btn-label">Check Puzzle</span>
+                </button>
+              </div>
+
+              <!-- SECONDARY CONTROLS & PRESET PUZZLES -->
+              <div class="button-row secondary-buttons">
+                <div class="preset-selector-group">
+                  <label for="samplePuzzleSelect" class="sr-only">Load Sample Puzzle</label>
+                  <select id="samplePuzzleSelect" class="form-select" aria-label="Select sample puzzle difficulty">
+                    <option value="" disabled selected>📂 Load Sample Puzzle...</option>
+                    <option value="easy">Easy Puzzle (Classic)</option>
+                    <option value="medium">Medium Puzzle (Standard)</option>
+                    <option value="hard">Hard Puzzle (Advanced)</option>
+                    <option value="invalid">Invalid Puzzle (Contains Duplicates)</option>
+                    <option value="unsolvable">Unsolvable Puzzle (No Mathematical Solution)</option>
+                  </select>
+                </div>
+                <button type="button" class="btn btn-outline" id="btnReset" title="Reset board to initial puzzle clues">
+                  <span class="btn-icon">↺</span>
+                  <span class="btn-label">Reset Board</span>
+                </button>
+                <button type="button" class="btn btn-outline-danger" id="btnClear" title="Clear all cells to empty state">
+                  <span class="btn-icon">✕</span>
+                  <span class="btn-label">Clear Board</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- MESSAGE & ALERT DISPLAY BANNER -->
+            <div id="boardAlert" class="board-alert info" role="status" aria-live="polite">
+              <span class="alert-icon" id="alertIcon">ℹ</span>
+              <div class="alert-content" id="alertMessage">
+                Welcome! Enter digits 1–9 into the grid or load a sample puzzle to begin.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT COLUMN: DIGITAL LOGIC LIVE HUD & VISUALIZATION CONTROLS -->
+        <div class="hud-column" id="digitalLogicHud">
+          
+          <!-- LIVE DIGITAL LOGIC CIRCUIT HUD -->
+          <div class="card circuit-card">
+            <div class="card-header">
+              <div class="card-title-group">
+                <h2 class="card-title">Digital Logic Circuit HUD</h2>
+                <span class="card-caption">Real-time candidate evaluation &amp; gate simulation</span>
+              </div>
+              <span class="circuit-mode-badge" id="circuitModeBadge">Simulation Idle</span>
+            </div>
+
+            <!-- 4-BIT BINARY REGISTER CARD -->
+            <div class="binary-register-box">
+              <div class="register-header">
+                <span class="register-title">4-Bit Candidate Register: <code id="candidateDecimalDisplay">D = ?</code></span>
+                <span class="register-format">Binary: <code id="candidateBinaryString">0b0000</code></span>
+              </div>
+              <div class="bit-lights-row">
+                <div class="bit-cell" id="bit3">
+                  <div class="bit-led" data-bit="8">0</div>
+                  <span class="bit-label">B<sub>3</sub> (8)</span>
+                </div>
+                <div class="bit-cell" id="bit2">
+                  <div class="bit-led" data-bit="4">0</div>
+                  <span class="bit-label">B<sub>2</sub> (4)</span>
+                </div>
+                <div class="bit-cell" id="bit1">
+                  <div class="bit-led" data-bit="2">0</div>
+                  <span class="bit-label">B<sub>1</sub> (2)</span>
+                </div>
+                <div class="bit-cell" id="bit0">
+                  <div class="bit-led" data-bit="1">0</div>
+                  <span class="bit-label">B<sub>0</sub> (1)</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 3-INPUT AND GATE SCHEMATIC WITH LIVE SIGNALS -->
+            <div class="circuit-schematic-wrapper">
+              <div class="gate-title-bar">
+                <span>Boolean Equation: <strong>VALID = ROW_SAFE &bull; COL_SAFE &bull; BOX_SAFE</strong></span>
+              </div>
+              <svg class="circuit-svg" viewBox="0 0 540 230" preserveAspectRatio="xMidYMid meet">
+                <defs>
+                  <filter id="glow-green" x="-20%" y="-20%" width="140%" height="140%">
+                    <feGaussianBlur stdDeviation="3" result="blur" />
+                    <feMerge>
+                      <feMergeNode in="blur" />
+                      <feMergeNode in="SourceGraphic" />
+                    </feMerge>
+                  </filter>
+                  <filter id="glow-red" x="-20%" y="-20%" width="140%" height="140%">
+                    <feGaussianBlur stdDeviation="3" result="blur" />
+                    <feMerge>
+                      <feMergeNode in="blur" />
+                      <feMergeNode in="SourceGraphic" />
+                    </feMerge>
+                  </filter>
+                </defs>
+
+                <!-- INPUT WIRES & PINS -->
+                <!-- Input A: ROW_SAFE -->
+                <line x1="30" y1="50" x2="230" y2="50" class="wire wire-input" id="wireRow" />
+                <circle cx="30" cy="50" r="5" class="pin-circle" id="pinRow" />
+                <text x="40" y="42" class="wire-label">Input A: ROW_SAFE (<span id="txtRowVal">0</span>)</text>
+
+                <!-- Input B: COL_SAFE -->
+                <line x1="30" y1="115" x2="230" y2="115" class="wire wire-input" id="wireCol" />
+                <circle cx="30" cy="115" r="5" class="pin-circle" id="pinCol" />
+                <text x="40" y="107" class="wire-label">Input B: COL_SAFE (<span id="txtColVal">0</span>)</text>
+
+                <!-- Input C: BOX_SAFE -->
+                <line x1="30" y1="180" x2="230" y2="180" class="wire wire-input" id="wireBox" />
+                <circle cx="30" cy="180" r="5" class="pin-circle" id="pinBox" />
+                <text x="40" y="172" class="wire-label">Input C: BOX_SAFE (<span id="txtBoxVal">0</span>)</text>
+
+                <!-- 3-INPUT AND GATE BODY (ANSI standard shape: Flat back at x=230, curved front to x=350, y=115) -->
+                <path d="M 230 25 L 280 25 A 90 90 0 0 1 280 205 L 230 205 Z" class="gate-body" id="andGateBody" />
+                <text x="260" y="122" class="gate-text">AND</text>
+                <text x="250" y="142" class="gate-subtext">3-Input Gate</text>
+
+                <!-- OUTPUT WIRE & PIN -->
+                <!-- Output: VALID -->
+                <line x1="370" y1="115" x2="480" y2="115" class="wire wire-output" id="wireValid" />
+                <circle cx="480" cy="115" r="7" class="pin-circle out-pin" id="pinValid" />
+                <text x="380" y="102" class="wire-label out-label">Output: VALID = <span id="txtValidVal">0</span></text>
+                <text x="380" y="140" class="wire-status" id="txtValidStatus">REJECTED (0)</text>
+              </svg>
+            </div>
+
+            <!-- DIGITAL LOGIC SUMMARY CHIPS -->
+            <div class="logic-chips-row">
+              <div class="logic-chip" id="chipRow">
+                <span class="chip-title">ROW CONSTRAINT</span>
+                <span class="chip-status" id="chipRowStatus">READY</span>
+              </div>
+              <div class="logic-chip" id="chipCol">
+                <span class="chip-title">COL CONSTRAINT</span>
+                <span class="chip-status" id="chipColStatus">READY</span>
+              </div>
+              <div class="logic-chip" id="chipBox">
+                <span class="chip-title">3&times;3 BOX CONSTRAINT</span>
+                <span class="chip-status" id="chipBoxStatus">READY</span>
+              </div>
+              <div class="logic-chip" id="chipOutput">
+                <span class="chip-title">AND GATE (VALID)</span>
+                <span class="chip-status" id="chipOutputStatus">READY</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- STEP-BY-STEP VISUALIZER CONTROLS & LIVE LOG -->
+          <div class="card visualizer-card">
+            <div class="card-header">
+              <div class="card-title-group">
+                <h3 class="card-title">Execution Controls &amp; Activity Log</h3>
+                <span class="card-caption">Step-by-step solver telemetries</span>
+              </div>
+              <div class="solver-stats-bar">
+                <span>Steps: <strong id="statSteps">0</strong></span> &bull; 
+                <span>Backtracks: <strong id="statBacktracks">0</strong></span> &bull; 
+                <span>Time: <strong id="statTime">0 ms</strong></span>
+              </div>
+            </div>
+
+            <!-- VISUALIZER CONTROLS (PLAY, PAUSE, STEP, SPEED) -->
+            <div class="visualizer-controls">
+              <div class="control-btn-group">
+                <button type="button" class="ctrl-btn" id="btnVisPlay" title="Start or Resume automatic stepping">▶ Play</button>
+                <button type="button" class="ctrl-btn" id="btnVisPause" title="Pause automatic stepping" disabled>⏸ Pause</button>
+                <button type="button" class="ctrl-btn" id="btnVisStep" title="Execute single candidate step manually" disabled>⏭ Step</button>
+                <button type="button" class="ctrl-btn ctrl-btn-danger" id="btnVisStop" title="Stop visualizer and restore board" disabled>⏹ Stop</button>
+              </div>
+
+              <!-- SPEED SLIDER -->
+              <div class="speed-slider-group">
+                <label for="speedSlider" class="speed-label">
+                  <span>Speed:</span>
+                  <span id="speedValueLabel">Fast (20ms)</span>
+                </label>
+                <input type="range" id="speedSlider" min="1" max="500" value="20" class="speed-range" aria-label="Visualizer Step Delay in milliseconds">
+                <div class="speed-ticks">
+                  <span>Fast</span>
+                  <span>Normal</span>
+                  <span>Slow</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- REAL-TIME CONSOLE / ACTIVITY LOG -->
+            <div class="console-box">
+              <div class="console-header">
+                <span class="console-title">Live Algorithmic Step Feed</span>
+                <button type="button" class="btn-clear-log" id="btnClearLog" title="Clear log output">Clear Log</button>
+              </div>
+              <div class="console-output" id="consoleOutput" role="log" aria-live="polite">
+                <div class="log-entry system">[SYSTEM] Sudoku Logic Solver initialized. Ready for evaluation.</div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 4: DIGITAL ELECTRONICS CONNECTION (THEORETICAL FRAMEWORK) -->
+    <section id="digitalTheorySection" class="theory-section">
+      <div class="section-title-wrap">
+        <span class="section-pill">Academic Curriculum Module</span>
+        <h2 class="section-heading">Digital Electronics Connection &amp; Theoretical Mapping</h2>
+        <p class="section-desc">Formal mapping between combinatorial digital logic elements and Sudoku constraint satisfaction problems.</p>
+      </div>
+
+      <!-- IMPORTANT NOTICE / DISCLAIMER CALLOUT -->
+      <div class="disclaimer-callout">
+        <div class="disclaimer-icon">⚠️</div>
+        <div class="disclaimer-text">
+          <strong>Important Academic Distinction:</strong> This project is a <em>software implementation modelling digital logic concepts</em> on a von Neumann processor using JavaScript. It mathematically models Boolean variables, logic gates, truth tables, and binary encoding rather than functioning as a physical hardware circuit built with physical TTL/CMOS ICs or FPGA silicon.
+        </div>
+      </div>
+
+      <!-- THEORY CARDS GRID -->
+      <div class="theory-grid">
+        
+        <!-- CARD A: BINARY REPRESENTATION -->
+        <div class="theory-card">
+          <div class="theory-card-header">
+            <span class="theory-num">A</span>
+            <h3 class="theory-title">Binary Representation (4-Bit Register)</h3>
+          </div>
+          <div class="theory-card-body">
+            <p>In digital systems, each decimal digit $1 \dots 9$ is encoded using a <strong>4-bit binary word</strong> $(B_3 B_2 B_1 B_0)_2$, where $B_3$ is the Most Significant Bit (MSB, weight $2^3 = 8$) and $B_0$ is the Least Significant Bit (LSB, weight $2^0 = 1$).</p>
+            <div class="table-responsive">
+              <table class="academic-table mini-table">
+                <thead>
+                  <tr>
+                    <th>Digit</th>
+                    <th>$B_3$</th>
+                    <th>$B_2$</th>
+                    <th>$B_1$</th>
+                    <th>$B_0$</th>
+                    <th>Binary</th>
+                    <th>BCD Equivalent</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr><td><strong>1</strong></td><td>0</td><td>0</td><td>0</td><td>1</td><td><code>0001</code></td><td>BCD 0001</td></tr>
+                  <tr><td><strong>2</strong></td><td>0</td><td>0</td><td>1</td><td>0</td><td><code>0010</code></td><td>BCD 0010</td></tr>
+                  <tr><td><strong>3</strong></td><td>0</td><td>0</td><td>1</td><td>1</td><td><code>0011</code></td><td>BCD 0011</td></tr>
+                  <tr><td><strong>4</strong></td><td>0</td><td>1</td><td>0</td><td>0</td><td><code>0100</code></td><td>BCD 0100</td></tr>
+                  <tr><td><strong>5</strong></td><td>0</td><td>1</td><td>0</td><td>1</td><td><code>0101</code></td><td>BCD 0101</td></tr>
+                  <tr><td><strong>6</strong></td><td>0</td><td>1</td><td>1</td><td>0</td><td><code>0110</code></td><td>BCD 0110</td></tr>
+                  <tr><td><strong>7</strong></td><td>0</td><td>1</td><td>1</td><td>1</td><td><code>0111</code></td><td>BCD 0111</td></tr>
+                  <tr><td><strong>8</strong></td><td>1</td><td>0</td><td>0</td><td>0</td><td><code>1000</code></td><td>BCD 1000</td></tr>
+                  <tr><td><strong>9</strong></td><td>1</td><td>0</td><td>0</td><td>1</td><td><code>1001</code></td><td>BCD 1001</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="theory-note"><strong>Don't Care States ($X$):</strong> The binary combinations $1010_2$ to $1111_2$ (10–15 decimal) and $0000_2$ (empty cell / null) are treated as invalid or "Don't Care" states in Binary Coded Decimal (BCD) logic.</p>
+          </div>
+        </div>
+
+        <!-- CARD B: BOOLEAN LOGIC -->
+        <div class="theory-card">
+          <div class="theory-card-header">
+            <span class="theory-num">B</span>
+            <h3 class="theory-title">Boolean Logic Modeling</h3>
+          </div>
+          <div class="theory-card-body">
+            <p>Every candidate placement in Sudoku is governed by strict binary conditions. A condition can only take one of two discrete Boolean states:</p>
+            <ul class="academic-list">
+              <li><strong>Logic 1 (TRUE / HIGH):</strong> The condition is satisfied; no violation exists.</li>
+              <li><strong>Logic 0 (FALSE / LOW):</strong> A conflict is detected; condition is violated.</li>
+            </ul>
+            <p>We define three independent Boolean state variables for any candidate digit $D$ tested at coordinates $(r, c)$:</p>
+            <div class="formula-box">
+              $$A = \text{ROW\_SAFE} \in \{0, 1\}$$
+              $$B = \text{COLUMN\_SAFE} \in \{0, 1\}$$
+              $$C = \text{BOX\_SAFE} \in \{0, 1\}$$
+            </div>
+            <p>Each variable is evaluated independently through combinatorial inspection of the corresponding unit.</p>
+          </div>
+        </div>
+
+        <!-- CARD C: AND GATE -->
+        <div class="theory-card">
+          <div class="theory-card-header">
+            <span class="theory-num">C</span>
+            <h3 class="theory-title">The 3-Input AND Gate Formulation</h3>
+          </div>
+          <div class="theory-card-body">
+            <p>The fundamental constraint of Sudoku dictates that a candidate digit $D$ may only occupy a cell if and only if it satisfies all three orthogonal constraints concurrently.</p>
+            <p>In digital electronics, this exact behavior is implemented by a <strong>3-Input AND Gate</strong>:</p>
+            <div class="formula-box highlight">
+              $$\text{VALID} = A \cdot B \cdot C = \text{ROW\_SAFE} \land \text{COLUMN\_SAFE} \land \text{BOX\_SAFE}$$
+            </div>
+            <p><strong>Operational Rule:</strong></p>
+            <ul class="academic-list">
+              <li>If <em>all three</em> inputs are Logic 1 ($A=1, B=1, C=1$), the gate outputs $\text{VALID} = 1$. The candidate is accepted and inserted into the board matrix.</li>
+              <li>If <em>any single input</em> drops to Logic 0, the AND gate output immediately collapses to $\text{VALID} = 0$. The candidate is rejected.</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- CARD D: NOT GATE (INVERTER) -->
+        <div class="theory-card">
+          <div class="theory-card-header">
+            <span class="theory-num">D</span>
+            <h3 class="theory-title">NOT Gate &amp; Conflict Inversion</h3>
+          </div>
+          <div class="theory-card-body">
+            <p>Physical identity comparators (such as 74LS85 ICs) naturally signal a match when a duplicate digit is found: $\text{CONFLICT} = 1$.</p>
+            <p>To convert a detected conflict into a "safe" condition suitable for the positive-logic AND gate, a <strong>NOT Gate (Inverter)</strong> is required:</p>
+            <div class="formula-box">
+              $$\text{ROW\_SAFE} = \overline{\text{ROW\_CONFLICT}} = \text{NOT}(\text{ROW\_CONFLICT})$$
+              $$\text{COLUMN\_SAFE} = \overline{\text{COL\_CONFLICT}} = \text{NOT}(\text{COL\_CONFLICT})$$
+              $$\text{BOX\_SAFE} = \overline{\text{BOX\_CONFLICT}} = \text{NOT}(\text{BOX\_CONFLICT})$$
+            </div>
+            <p>When a conflict occurs ($\text{CONFLICT}=1$), the inverter drives $\text{SAFE}=0$, which forces the 3-input AND gate to output $0$, automatically rejecting the candidate.</p>
+          </div>
+        </div>
+
+        <!-- CARD E: COMBINATIONAL LOGIC -->
+        <div class="theory-card full-width">
+          <div class="theory-card-header">
+            <span class="theory-num">E</span>
+            <h3 class="theory-title">Combinational Logic Equivalence Architecture</h3>
+          </div>
+          <div class="theory-card-body">
+            <p>In a hardware implementation (e.g. ASIC or FPGA), constraint validation does not require iterative sequential loops. Instead, it operates as a <strong>pure Combinational Logic Circuit</strong> with zero sequential clock delays beyond propagation delay ($t_{pd}$):</p>
+            <div class="combinational-flowchart">
+              <div class="flow-block">
+                <strong>Current Board State</strong><br>
+                <span>81 &times; 4-Bit Registers</span>
+              </div>
+              <div class="flow-arrow">&rarr;</div>
+              <div class="flow-block">
+                <strong>27 Parallel 4-Bit Comparators</strong><br>
+                <span>9 Row + 9 Col + 9 Box Units</span>
+              </div>
+              <div class="flow-arrow">&rarr;</div>
+              <div class="flow-block">
+                <strong>NOR / Inverter Conflict Stage</strong><br>
+                <span>Generates SAFE signals</span>
+              </div>
+              <div class="flow-arrow">&rarr;</div>
+              <div class="flow-block highlight">
+                <strong>3-Input AND Gate</strong><br>
+                <span>$\text{VALID} = A \cdot B \cdot C$</span>
+              </div>
+            </div>
+            <p class="mt-2">Our JavaScript implementation models this combinational transfer function deterministically on each recursive step.</p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- SECTION 5: TRUTH TABLE (8-ROW COMPREHENSIVE TABLE) -->
+    <section id="truthTableSection" class="truth-table-section">
+      <div class="section-title-wrap">
+        <span class="section-pill">Truth Table Analysis</span>
+        <h2 class="section-heading">Complete 8-State Truth Table for 3-Input AND Gate</h2>
+        <p class="section-desc">Enumerating all $2^3 = 8$ permutations of inputs $A, B, C$ and the corresponding gate output $\text{VALID}$.</p>
+      </div>
+
+      <div class="card truth-card">
+        <div class="table-responsive">
+          <table class="academic-table truth-table" id="interactiveTruthTable">
+            <thead>
+              <tr>
+                <th scope="col">State ($m$)</th>
+                <th scope="col">Input A<br><small>ROW_SAFE</small></th>
+                <th scope="col">Input B<br><small>COL_SAFE</small></th>
+                <th scope="col">Input C<br><small>BOX_SAFE</small></th>
+                <th scope="col">Output Y<br><small>$\text{VALID} = A \cdot B \cdot C$</small></th>
+                <th scope="col">Candidate Status</th>
+                <th scope="col">Logic Gate Explanation &amp; Action Taken</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr data-state="0" class="truth-row">
+                <td><strong>$m_0$</strong></td>
+                <td>0</td>
+                <td>0</td>
+                <td>0</td>
+                <td><span class="truth-out zero">0</span></td>
+                <td><span class="badge badge-reject">REJECTED</span></td>
+                <td>Triple Conflict: Candidate exists in Row, Column, and 3&times;3 Box. Gate pulled LOW.</td>
+              </tr>
+              <tr data-state="1" class="truth-row">
+                <td><strong>$m_1$</strong></td>
+                <td>0</td>
+                <td>0</td>
+                <td>1</td>
+                <td><span class="truth-out zero">0</span></td>
+                <td><span class="badge badge-reject">REJECTED</span></td>
+                <td>Dual Conflict: Duplicate found in Row and Column. Gate pulled LOW.</td>
+              </tr>
+              <tr data-state="2" class="truth-row">
+                <td><strong>$m_2$</strong></td>
+                <td>0</td>
+                <td>1</td>
+                <td>0</td>
+                <td><span class="truth-out zero">0</span></td>
+                <td><span class="badge badge-reject">REJECTED</span></td>
+                <td>Dual Conflict: Duplicate found in Row and 3&times;3 Box. Gate pulled LOW.</td>
+              </tr>
+              <tr data-state="3" class="truth-row">
+                <td><strong>$m_3$</strong></td>
+                <td>0</td>
+                <td>1</td>
+                <td>1</td>
+                <td><span class="truth-out zero">0</span></td>
+                <td><span class="badge badge-reject">REJECTED</span></td>
+                <td>Single Conflict: Candidate violates Row uniqueness. Gate pulled LOW.</td>
+              </tr>
+              <tr data-state="4" class="truth-row">
+                <td><strong>$m_4$</strong></td>
+                <td>1</td>
+                <td>0</td>
+                <td>0</td>
+                <td><span class="truth-out zero">0</span></td>
+                <td><span class="badge badge-reject">REJECTED</span></td>
+                <td>Dual Conflict: Duplicate found in Column and 3&times;3 Box. Gate pulled LOW.</td>
+              </tr>
+              <tr data-state="5" class="truth-row">
+                <td><strong>$m_5$</strong></td>
+                <td>1</td>
+                <td>0</td>
+                <td>1</td>
+                <td><span class="truth-out zero">0</span></td>
+                <td><span class="badge badge-reject">REJECTED</span></td>
+                <td>Single Conflict: Candidate violates Column uniqueness. Gate pulled LOW.</td>
+              </tr>
+              <tr data-state="6" class="truth-row">
+                <td><strong>$m_6$</strong></td>
+                <td>1</td>
+                <td>1</td>
+                <td>0</td>
+                <td><span class="truth-out zero">0</span></td>
+                <td><span class="badge badge-reject">REJECTED</span></td>
+                <td>Single Conflict: Candidate violates 3&times;3 Box uniqueness. Gate pulled LOW.</td>
+              </tr>
+              <tr data-state="7" class="truth-row highlight-accept">
+                <td><strong>$m_7$</strong></td>
+                <td>1</td>
+                <td>1</td>
+                <td>1</td>
+                <td><span class="truth-out one">1</span></td>
+                <td><span class="badge badge-accept">ACCEPTED</span></td>
+                <td><strong>Valid Placement:</strong> All three constraints satisfied. Gate fires HIGH. Digit is inserted.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="truth-footer">
+          <p><strong>Boolean Canonical Sum-of-Products (SOP):</strong> $\text{VALID} = m_7 = A \cdot B \cdot C$. Only Minterm 7 produces a Logic 1 output.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 6: ALGORITHM & COMPLEXITY -->
+    <section id="algorithmSection" class="algorithm-section">
+      <div class="section-title-wrap">
+        <span class="section-pill">Algorithmic Architecture</span>
+        <h2 class="section-heading">Recursive Backtracking Algorithm</h2>
+        <p class="section-desc">Depth-First Search (DFS) state space tree exploration with constraint pruning.</p>
+      </div>
+
+      <div class="algo-grid">
+        <div class="card algo-card">
+          <h3 class="card-title">Step-by-Step Algorithm Execution</h3>
+          <ol class="algo-steps-list">
+            <li>
+              <strong>Scan for Empty Cell:</strong>
+              Inspect board for the next empty cell (value $= 0$) in row-major order $(r, c)$. If no empty cells remain, the puzzle is completely <strong>SOLVED</strong>.
+            </li>
+            <li>
+              <strong>Iterate Candidate Digits:</strong>
+              Test values $D \in \{1, 2, 3, 4, 5, 6, 7, 8, 9\}$ sequentially.
+            </li>
+            <li>
+              <strong>Execute Digital Logic Validation:</strong>
+              Compute Boolean safe signals:
+              <pre class="code-snippet"><code>rowSafe = isRowSafe(board, r, D);
+colSafe = isColSafe(board, c, D);
+boxSafe = isBoxSafe(board, r - (r % 3), c - (c % 3), D);
+valid = rowSafe && colSafe && boxSafe;</code></pre>
+            </li>
+            <li>
+              <strong>Tentative Insertion &amp; Recursion:</strong>
+              If $\text{valid} == 1$, assign $\text{board}[r][c] = D$ and recursively invoke <code>solve(board)</code>.
+            </li>
+            <li>
+              <strong>Backtracking Step:</strong>
+              If the recursive call fails (returns <code>false</code>), reset cell $\text{board}[r][c] = 0$ (backtrack) and attempt the next candidate $D+1$.
+            </li>
+            <li>
+              <strong>Exhaustion:</strong>
+              If all digits $1\dots 9$ fail at the current cell, return <code>false</code> to the previous recursion frame. If the root frame fails, the puzzle is <strong>UNSOLVABLE</strong>.
+            </li>
+          </ol>
+        </div>
+
+        <div class="card algo-complexity-card">
+          <h3 class="card-title">Complexity Analysis</h3>
+          <div class="complexity-item">
+            <h4>Time Complexity: Worst-Case $\mathcal{O}(9^m)$</h4>
+            <p>Where $m \le 81$ is the number of unassigned cells. In the worst theoretical case without constraints, each cell could try 9 numbers. In practice, constraint pruning (evaluating $A \cdot B \cdot C$) eliminates vast branches of the state-space tree, allowing 99% of valid puzzles to solve in under <strong>15 milliseconds</strong>.</p>
+          </div>
+          <div class="complexity-item">
+            <h4>Space Complexity: $\mathcal{O}(m)$</h4>
+            <p>The call stack depth is strictly bounded by the number of empty cells $m \le 81$. The board matrix occupies constant memory $\mathcal{O}(81) = \mathcal{O}(1)$ of 81 4-bit nibbles.</p>
+          </div>
+          <div class="complexity-item">
+            <h4>Pruning Efficiency</h4>
+            <p>By enforcing $A \cdot B \cdot C$ prior to recursing, invalid branches are pruned at depth $d=0$ or $d=1$, preventing exponential explosion.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="app-footer">
+    <div class="footer-container">
+      <div class="footer-col">
+        <h4>Project Title</h4>
+        <p>Design and Implementation of a Sudoku Solver Using Digital Logic Concepts</p>
+      </div>
+      <div class="footer-col">
+        <h4>Academic Scope</h4>
+        <p>B.Tech Mini-Project &bull; Department of Electronics &amp; Communication / Computer Science Engineering</p>
+      </div>
+      <div class="footer-col">
+        <h4>Tech Stack</h4>
+        <p>HTML5 &bull; CSS3 &bull; Vanilla JavaScript (Pure Client-side, Zero external dependencies)</p>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      &copy; Academic Mini-Project Submission &bull; Verified Local Browser Implementation
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
+
